@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 # .env 파일에서 OpenAI 키 불러오기
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("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")
 
 st.set_page_config(page_title="GPT Q&A", page_icon="🤖")
 st.title("💬 GPT-4 Q&A")
