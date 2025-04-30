@@ -12,7 +12,7 @@ st.title("💬 GPT-4 Q&A")
 st.write("OpenAI GPT API를 이용한 질문 응답 서비스입니다.")
 
 # 사용자 입력
-question = st.text_input("무엇이든 질문해보세요:")
+question = st.text_input("무엇이든 질문해보세요:") 
 
 # 버튼 클릭 시 GPT 호출
 if st.button("답변 받기") and question:
