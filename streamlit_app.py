@@ -1,11 +1,14 @@
 import streamlit as st
 from openai import OpenAI
+import sys
+import io
+
+# UTF-8 인코딩 강제 설정
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 st.title("GPT-4.0 Mini Chatbot")
 
 api_key = st.text_input("OpenAI API Key를 입력하세요:", type="password")
-
-# 세션에 저장
 if api_key:
     st.session_state["api_key"] = api_key
 elif "api_key" in st.session_state:
@@ -13,10 +16,10 @@ elif "api_key" in st.session_state:
 
 question = st.text_input("질문을 입력하세요:")
 
-@st.cache_data(show_spinner="GPT-4.0 mini에게 질문 중입니다...")
+@st.cache_data
 def ask_gpt(prompt, key):
     try:
-        client = OpenAI(api_key=key)  # ⬅️ 반드시 인스턴스로 초기화
+        client = OpenAI(api_key=key)
         response = client.chat.completions.create(
             model="gpt-4-1106-preview",
             messages=[{"role": "user", "content": prompt}]
