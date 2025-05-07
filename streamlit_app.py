@@ -1,34 +1,58 @@
 import streamlit as st
 from openai import OpenAI
-import sys
-import io
 
-# UTF-8 인코딩 강제 설정
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+st.set_page_config(page_title="GPT Chat", layout="centered")
 
-st.title("GPT-4.0 Mini Chatbot")
+# --- 세션 상태 초기화 ---
+if "api_key" not in st.session_state:
+    st.session_state.api_key = ""
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-api_key = st.text_input("OpenAI API Key를 입력하세요:", type="password")
-if api_key:
-    st.session_state["api_key"] = api_key
-elif "api_key" in st.session_state:
-    api_key = st.session_state["api_key"]
+# --- 사이드바에서 API Key 입력 ---
+st.sidebar.header("🔐 OpenAI 설정")
+st.session_state.api_key = st.sidebar.text_input("API Key 입력", type="password", value=st.session_state.api_key)
 
-question = st.text_input("질문을 입력하세요:")
+# --- 페이지 제목 ---
+st.title("💬 GPT Chat 페이지")
 
-@st.cache_data
-def ask_gpt(prompt, key):
+# --- Clear 버튼 ---
+if st.sidebar.button("🗑️ Clear 대화"):
+    st.session_state.chat_history = []
+    st.experimental_rerun()
+
+# --- 사용자 입력 ---
+user_input = st.text_input("당신의 메시지를 입력하세요:", key="user_input")
+
+# --- GPT 응답 요청 함수 ---
+def get_gpt_response(api_key, history):
     try:
-        client = OpenAI(api_key=key)
+        client = OpenAI(api_key=api_key)
         response = client.chat.completions.create(
-            model="gpt-4-1106-preview",
-            messages=[{"role": "user", "content": prompt}]
+            model="gpt-4",
+            messages=history,
+            temperature=0.7
         )
-        return response.choices[0].message.content.strip()
+        return response.choices[0].message.content
     except Exception as e:
-        return f"에러 발생: {e}"
+        return f"⚠️ 에러: {e}"
 
-if question:
-    answer = ask_gpt(question, api_key)
-    st.markdown("### 💬 GPT 응답")
-    st.write(answer)
+# --- 전송 버튼 클릭 시 동작 ---
+if st.button("전송") and user_input.strip() != "":
+    # 사용자 메시지 추가
+    st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+    # GPT 응답 받기
+    gpt_reply = get_gpt_response(st.session_state.api_key, [
+        {"role": "system", "content": "너는 친절한 AI 비서야."}
+    ] + st.session_state.chat_history)
+
+    # 응답 저장
+    st.session_state.chat_history.append({"role": "assistant", "content": gpt_reply})
+
+# --- 대화 내역 출력 ---
+for chat in st.session_state.chat_history:
+    if chat["role"] == "user":
+        st.markdown(f"**🙋‍♂️ 사용자:** {chat['content']}")
+    elif chat["role"] == "assistant":
+        st.markdown(f"**🤖 GPT:** {chat['content']}")
